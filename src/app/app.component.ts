@@ -1,31 +1,104 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription, of, Observable } from 'rxjs';
+import { delay, share } from 'rxjs/operators';
+
+export class User {
+  firstName: string;
+  lastName: string;
+  age: number;
+  height: number;
+  mass: number;
+  homeworld: string;
+}
 
 @Component({
   selector: 'app-root',
   template: `
-    <!--The content below is only a placeholder and can be replaced.-->
-    <div style="text-align:center">
-      <h1>
-        Welcome to {{title}}!
-      </h1>
-      <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
+    <h1>With ngIf and ngElse</h1>
+    <div *ngIf="user | async as user; else loading">
+      <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+      <dl>
+        <dt>Age:</dt>
+        <dd>{{ user.age }}</dd>
+
+        <dt>Height:</dt>
+        <dd>{{ user.height }}</dd>
+
+        <dt>Mass:</dt>
+        <dd>{{ user.mass }}</dd>
+
+        <dt>Homeworld:</dt>
+        <dd>{{ user.homeworld }}</dd>
+      </dl>
     </div>
-    <h2>Here are some links to help you start: </h2>
-    <ul>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/cli">CLI Documentation</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-      </li>
-    </ul>
-    
+    <ng-template #loading>Loading User Data...</ng-template>
+
+    <h2>Async Pipe with share() operator</h2>
+    <div>
+      <h2>{{ (user2 | async)?.firstName }} {{ (user2 | async)?.lastName }}</h2>
+      <dl>
+        <dt>Age:</dt>
+        <dd>{{ (user2 | async)?.age }}</dd>
+
+        <dt>Height:</dt>
+        <dd>{{ (user2 | async)?.height }}</dd>
+
+        <dt>Mass:</dt>
+        <dd>{{ (user2 | async)?.mass }}</dd>
+
+        <dt>Homeworld:</dt>
+        <dd>{{ (user2 | async)?.homeworld }}</dd>
+      </dl>
+    </div>
+
+    <h2>Manual subscription Handling in TypEscript</h2>
+    <div>
+      <h2>{{ user3?.firstName }} {{ user3?.lastName }}</h2>
+      <dl>
+        <dt>Age:</dt>
+        <dd>{{ user3?.age }}</dd>
+
+        <dt>Height:</dt>
+        <dd>{{ user3?.height }}</dd>
+
+        <dt>Mass:</dt>
+        <dd>{{ user3?.mass }}</dd>
+
+        <dt>Homeworld:</dt>
+        <dd>{{ user3?.homeworld }}</dd>
+      </dl>
+    </div>
   `,
   styles: []
 })
-export class AppComponent {
-  title = 'AsyncTest';
+export class AppComponent implements OnInit, OnDestroy {
+  user: Observable<User>;
+  user2;
+  user3: User;
+  subscription: Subscription;
+  ngOnInit() {
+    // Using ngIf ngElse
+    this.user = this.getAsyncData();
+
+    // Using just async pipe
+    this.user2 = this.getAsyncData().pipe(share());
+
+    // Manual subscription handling
+    this.subscription = this.getAsyncData().subscribe(u => (this.user3 = u));
+  }
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
+
+  getAsyncData() {
+    // Fake Slow Async Data
+    return of({
+      firstName: 'Luke',
+      lastName: 'Skywalker',
+      age: 65,
+      height: 172,
+      mass: 77,
+      homeworld: 'Tatooine'
+    }).pipe(delay(5000));
+  }
 }
